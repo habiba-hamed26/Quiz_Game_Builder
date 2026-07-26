@@ -1,0 +1,182 @@
+from flask import Flask, render_template, request, redirect, url_for, session, flash
+from werkzeug.security import generate_password_hash, check_password_hash
+from functools import wraps
+import sqlite3
+
+app = Flask(__name__)
+app.secret_key = 'change-this-to-something-random'
+
+def get_db_connection():
+    conn = sqlite3.connect('database.db')
+    conn.execute('PRAGMA foreign_keys = ON')
+    conn.row_factory = sqlite3.Row
+    return conn
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
+        password_hash = generate_password_hash(password)
+
+        conn = get_db_connection()
+        try:
+            conn.execute('INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)',
+                         (username, email, password_hash))
+            conn.commit()
+        except sqlite3.IntegrityError:
+            flash('Username or email already exists.')
+            return redirect(url_for('register'))
+        finally:
+            conn.close()
+        return redirect(url_for('login'))
+
+    return render_template('register.html')   
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        conn = get_db_connection()
+        user = conn.execute('SELECT * FROM users WHERE username = ?', (username,)).fetchone()
+        conn.close()
+
+        if user and check_password_hash(user['password_hash'], password):
+            session['user_id'] = user['id']
+            session['username'] = user['username']
+            return redirect(url_for('index'))
+        flash('Invalid username or password.')
+
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('index'))
+
+
+
+def login_required(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if 'user_id' not in session:
+            flash('Please log in first.')
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return wrapper
+
+@app.route('/')
+def index():
+    conn = get_db_connection()
+    quizzes = conn.execute('SELECT * FROM quizzes ORDER BY created_at DESC').fetchall()
+    conn.close()
+    return render_template('index.html', quizzes=quizzes)
+
+@app.route('/create', methods=['GET', 'POST'])
+@login_required
+def create_quiz():
+    if request.method == 'POST':
+        title = request.form['title']
+        description = request.form.get('description', '')
+
+        questions = request.form.getlist('question_text')
+        if len(questions) == 0:
+            flash('A quiz needs at least one question.')
+            return redirect(url_for('create_quiz'))
+
+
+        conn = get_db_connection()
+        cur = conn.execute(
+            'INSERT INTO quizzes (title, description, created_by) VALUES (?, ?, ?)',
+            (title, description, session['user_id'])
+        )
+        quiz_id = cur.lastrowid
+
+        options_a = request.form.getlist('option_a')
+        options_b = request.form.getlist('option_b')
+        options_c = request.form.getlist('option_c')
+        options_d = request.form.getlist('option_d')
+        correct = request.form.getlist('correct_option')
+
+        for i in range(len(questions)):
+            conn.execute('''INSERT INTO questions
+                (quiz_id, question_text, option_a, option_b, option_c, option_d, correct_option)
+                VALUES (?, ?, ?, ?, ?, ?, ?)''',
+                (quiz_id, questions[i], options_a[i], options_b[i], options_c[i], options_d[i], correct[i]))
+
+        conn.commit()
+        conn.close()
+        return redirect(url_for('index'))
+
+    return render_template('create_quiz.html')
+
+@app.route('/quiz/<int:quiz_id>', methods=['GET', 'POST'])
+def play_quiz(quiz_id):
+    conn = get_db_connection()
+    quiz = conn.execute('''
+        SELECT quizzes.*, users.username AS creator_name
+        FROM quizzes
+        JOIN users ON quizzes.created_by = users.id
+        WHERE quizzes.id = ?
+    ''', (quiz_id,)).fetchone()
+    questions = conn.execute('SELECT * FROM questions WHERE quiz_id = ?', (quiz_id,)).fetchall()
+
+    if request.method == 'POST':
+        score = 0
+        for q in questions:
+            selected = request.form.get(f'question_{q["id"]}')
+            if selected == q['correct_option']:
+                score += 1
+
+        if 'user_id' in session:
+            user_id = session['user_id']
+            player_name = session['username']
+        else:
+            user_id = None
+            player_name = request.form.get('guest_name', 'Guest')
+
+        conn.execute('''INSERT INTO scores (quiz_id, user_id, player_name, score, total_questions)
+                         VALUES (?, ?, ?, ?, ?)''',
+                      (quiz_id, user_id, player_name, score, len(questions)))
+        conn.commit()
+        conn.close()
+        return redirect(url_for('result', quiz_id=quiz_id, score=score, total=len(questions)))
+
+    conn.close()
+    return render_template('play_quiz.html', quiz=quiz, questions=questions,
+                            logged_in='user_id' in session)
+
+
+@app.route('/result/<int:quiz_id>')
+def result(quiz_id):
+    score = request.args.get('score')
+    total = request.args.get('total')
+    return render_template('result.html', score=score, total=total, quiz_id=quiz_id)
+
+@app.route('/leaderboard/<int:quiz_id>')
+def leaderboard(quiz_id):
+    conn = get_db_connection()
+    scores = conn.execute('''
+        SELECT player_name, MAX(score) as score
+        FROM scores
+        WHERE quiz_id = ?
+        GROUP BY COALESCE(user_id, player_name)
+        ORDER BY score DESC
+        LIMIT 10
+    ''', (quiz_id,)).fetchall()
+    conn.close()
+    labels = [s['player_name'] for s in scores]
+    values = [s['score'] for s in scores]
+    top3 = scores[:3]
+    return render_template('leaderboard.html', labels=labels, values=values,
+                            quiz_id=quiz_id, top3=top3)
+
+
+
+
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
