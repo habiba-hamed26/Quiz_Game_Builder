@@ -4,7 +4,7 @@ from functools import wraps
 import sqlite3
 
 app = Flask(__name__)
-app.secret_key = 'change-this-to-something-random'
+app.secret_key = 'my_quizGame_app'
 
 def get_db_connection():
     conn = sqlite3.connect('database.db')   
