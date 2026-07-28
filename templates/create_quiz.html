@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% block title %}Create Quiz{% endblock %}
+
+{% block content %}
+<div class="form-card wide">
+  <h2>Create a New Quiz</h2>
+
+  <form method="POST" action="{{ url_for('create_quiz') }}" id="quiz-form">
+
+    <label for="title">Quiz Title</label>
+    <input type="text" id="title" name="title" required>
+
+    <label for="description">Description (optional)</label>
+    <textarea id="description" name="description" rows="2"></textarea>
+
+    <hr>
+
+    <div id="questions-container">
+      <!-- question blocks get inserted here -->
+    </div>
+
+    <button type="button" id="add-question-btn" class="secondary-btn">+ Add Question</button>
+
+    <hr>
+
+    <button type="submit">Save Quiz</button>
+  </form>
+</div>
+
+<!-- Template for a single question block, cloned by JS -->
+<template id="question-template">
+  <div class="question-block">
+    <div class="question-block-header">
+      <strong>Question <span class="q-number"></span></strong>
+      <button type="button" class="remove-question-btn">Remove</button>
+    </div>
+
+    <label>Question text</label>
+    <input type="text" name="question_text" required>
+
+    <div class="options-grid">
+      <div>
+        <label>Option A</label>
+        <input type="text" name="option_a" required>
+      </div>
+      <div>
+        <label>Option B</label>
+        <input type="text" name="option_b" required>
+      </div>
+      <div>
+        <label>Option C</label>
+        <input type="text" name="option_c" required>
+      </div>
+      <div>
+        <label>Option D</label>
+        <input type="text" name="option_d" required>
+      </div>
+    </div>
+
+    <label>Correct Option</label>
+    <select name="correct_option" required>
+      <option value="">-- select --</option>
+      <option value="a">A</option>
+      <option value="b">B</option>
+      <option value="c">C</option>
+      <option value="d">D</option>
+    </select>
+  </div>
+</template>
+
+<script>
+  const container = document.getElementById('questions-container');
+  const template = document.getElementById('question-template');
+  const addBtn = document.getElementById('add-question-btn');
+  const form = document.getElementById('quiz-form');
+
+  function renumberQuestions() {
+    const blocks = container.querySelectorAll('.question-block');
+    blocks.forEach((block, index) => {
+      block.querySelector('.q-number').textContent = index + 1;
+    });
+  }
+
+  function addQuestion() {
+    const clone = template.content.cloneNode(true);
+
+    clone.querySelector('.remove-question-btn').addEventListener('click', (e) => {
+      e.target.closest('.question-block').remove();
+      renumberQuestions();
+    });
+
+    container.appendChild(clone);
+    renumberQuestions();
+  }
+
+  addBtn.addEventListener('click', addQuestion);
+
+  // Start with one question block by default
+  addQuestion();
+
+  // Basic guard: require at least one question before submitting
+  form.addEventListener('submit', (e) => {
+    if (container.querySelectorAll('.question-block').length === 0) {
+      e.preventDefault();
+      alert('Add at least one question before saving the quiz.');
+    }
+  });
+</script>
+{% endblock %}
