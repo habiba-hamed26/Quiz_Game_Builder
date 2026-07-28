@@ -6,7 +6,7 @@ CREATE TABLE users
     password_hash VARCHAR(255) NOT NULL
 );
 
-CREATE TABLE Quizzes 
+CREATE TABLE quizzes 
 (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title VARCHAR(100) NOT NULL,
@@ -18,7 +18,7 @@ CREATE TABLE Quizzes
 
 );
 
-CREATE TABLE Questions 
+CREATE TABLE questions 
 (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     quiz_id INTEGER NOT NULL,
