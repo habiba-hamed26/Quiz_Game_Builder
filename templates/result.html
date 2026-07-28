@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Quizzly | Result{% endblock %}
+
+{% block content %}
+<div class="form-card result-card">
+  <h2>Quiz Complete!</h2>
+
+  <div class="scoreboard">
+    <div class="result-label">Final Score</div>
+    <p class="result-score">{{ score }} / {{ total }}</p>
+  </div>
+
+  {% set percent = (score|int / total|int * 100) if total|int > 0 else 0 %}
+  <p class="result-message">
+    {% if percent == 100 %}
+      Perfect score! 🎉
+    {% elif percent >= 70 %}
+      Great job! 👏
+    {% elif percent >= 40 %}
+      Not bad — try again to beat your score.
+    {% else %}
+      Keep practicing, you'll get there!
+    {% endif %}
+  </p>
+
+  <div class="quiz-card-actions">
+    <a href="{{ url_for('play_quiz', quiz_id=quiz_id) }}" class="btn">Play Again</a>
+    <a href="{{ url_for('leaderboard', quiz_id=quiz_id) }}" class="btn secondary">View Leaderboard</a>
+  </div>
+
+  <p class="form-footer">
+    <a href="{{ url_for('index') }}">Back to all quizzes</a>
+  </p>
+</div>
+{% endblock %}
