@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
-{% block title %}All Quizzes{% endblock %}
+{% block title %}Quizzly | All Quizzes{% endblock %}
 
 {% block content %}
 <div class="hero">
   <h1>Pick a quiz. Beat the board.</h1>
   <p>Play any quiz below, climb the leaderboard, or build your own in a couple of minutes.
     {% if not session.get('user_id') %}
-      <br> To create your own quiz please <a href="{{ url_for('login') }}">login</a>.
+      To create your own quiz please <a href="{{ url_for('login') }}">login</a>.
     {% endif %}
   </p>
 </div>
