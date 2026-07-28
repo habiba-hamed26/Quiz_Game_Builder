@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}All Quizzes{% endblock %}
+
+{% block content %}
+<div class="hero">
+  <h1>Pick a quiz. Beat the board.</h1>
+  <p>Play any quiz below, climb the leaderboard, or build your own in a couple of minutes.
+    {% if not session.get('user_id') %}
+      <br> To create your own quiz please <a href="{{ url_for('login') }}">login</a>.
+    {% endif %}
+  </p>
+</div>
+
+{% if quizzes|length == 0 %}
+  <p>No quizzes yet.
+    {% if session.get('user_id') %}
+      <a href="{{ url_for('create_quiz') }}">Create the first one</a>.
+    {% else %}
+      <a href="{{ url_for('login') }}">Log in</a> to create one.
+    {% endif %}
+  </p>
+{% else %}
+  <h2 class="section-title">Quizzes List</h2>
+  <div class="quiz-list">
+    {% for quiz in quizzes %}
+      <div class="quiz-card">
+        <h3>{{ quiz['title'] }}</h3>
+        {% if quiz['description'] %}
+          <p class="quiz-desc">{{ quiz['description'] }}</p>
+        {% endif %}
+
+        <div class="quiz-card-actions">
+          <a href="{{ url_for('play_quiz', quiz_id=quiz['id']) }}" class="btn">Play</a>
+          <a href="{{ url_for('leaderboard', quiz_id=quiz['id']) }}" class="btn secondary">Leaderboard</a>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+{% endblock %}
