@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}Quizzly | Leaderboard{% endblock %}
+
+{% block content %}
+<div class="form-card wide">
+  <span class="eyebrow" style="margin-bottom:10px;">High Scores</span>
+  <h2>Leaderboard</h2>
+
+  {% if labels|length == 0 %}
+    <p>No scores yet for this quiz — be the first to play!</p>
+  {% else %}
+    <div class="podium">
+      {% if top3|length > 1 %}
+      <div class="podium-spot second">
+        <div class="medal">🥈</div>
+        <div class="p-name">{{ top3[1]['player_name'] }}</div>
+        <div class="p-score">{{ top3[1]['score'] }}</div>
+      </div>
+      {% endif %}
+
+      {% if top3|length > 0 %}
+      <div class="podium-spot first">
+        <div class="medal">🥇</div>
+        <div class="p-name">{{ top3[0]['player_name'] }}</div>
+        <div class="p-score">{{ top3[0]['score'] }}</div>
+      </div>
+      {% endif %}
+
+      {% if top3|length > 2 %}
+      <div class="podium-spot third">
+        <div class="medal">🥉</div>
+        <div class="p-name">{{ top3[2]['player_name'] }}</div>
+        <div class="p-score">{{ top3[2]['score'] }}</div>
+      </div>
+      {% endif %}
+    </div>
+
+    <canvas id="leaderboardChart" height="120"></canvas>
+  {% endif %}
+
+  <p class="form-footer">
+    <a href="{{ url_for('play_quiz', quiz_id=quiz_id) }}">Play this quiz</a> ·
+    <a href="{{ url_for('index') }}">Back to all quizzes</a>
+  </p>
+</div>
+
+{% if labels|length > 0 %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const ctx = document.getElementById('leaderboardChart');
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: {{ labels | tojson }},
+      datasets: [{
+        label: 'Score',
+        data: {{ values | tojson }},
+        backgroundColor: 'rgba(43, 45, 66, 0.75)',
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        title: { display: true, text: 'Top 10 Scores' }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { precision: 0 }
+        }
+      }
+    }
+  });
+</script>
+{% endif %}
+{% endblock %}
