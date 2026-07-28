@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}Quizzly | {{ quiz['title'] }}{% endblock %}
+
+{% block content %}
+<div class="form-card wide">
+  <h2>{{ quiz['title'] }}</h2>
+  <p class="creator-tag">Quiz created by {{ quiz['creator_name'] }}</p>
+  {% if quiz['description'] %}
+    <p class="quiz-desc">{{ quiz['description'] }}</p>
+  {% endif %}
+
+  {% if questions|length == 0 %}
+    <p>This quiz has no questions yet.</p>
+  {% else %}
+    <form method="POST" action="{{ url_for('play_quiz', quiz_id=quiz['id']) }}">
+
+      {% if not logged_in %}
+        <label for="guest_name">Enter your name</label>
+        <input type="text" id="guest_name" name="guest_name" required placeholder="e.g. Ahmed">
+        <hr>
+      {% endif %}
+
+      {% for q in questions %}
+        <div class="question-block">
+          <strong>{{ loop.index }}. {{ q['question_text'] }}</strong>
+
+          <div class="answer-options">
+            <label class="option-label">
+              <input type="radio" name="question_{{ q['id'] }}" value="a" required>
+              <span class="option-letter">A</span> {{ q['option_a'] }}
+            </label>
+            <label class="option-label">
+              <input type="radio" name="question_{{ q['id'] }}" value="b">
+              <span class="option-letter">B</span> {{ q['option_b'] }}
+            </label>
+            <label class="option-label">
+              <input type="radio" name="question_{{ q['id'] }}" value="c">
+              <span class="option-letter">C</span> {{ q['option_c'] }}
+            </label>
+            <label class="option-label">
+              <input type="radio" name="question_{{ q['id'] }}" value="d">
+              <span class="option-letter">D</span> {{ q['option_d'] }}
+            </label>
+          </div>
+        </div>
+      {% endfor %}
+
+      <button type="submit">Submit Answers</button>
+    </form>
+  {% endif %}
+</div>
+{% endblock %}
