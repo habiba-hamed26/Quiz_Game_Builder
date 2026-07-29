@@ -1,3 +1,7 @@
+/* =========================================================
+   QUIZ GAME BUILDER — clean modern design system
+   ========================================================= */
+
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
 
 :root {
@@ -45,6 +49,7 @@ hr {
   margin: 24px 0;
 }
 
+/* ---------------- Navbar ---------------- */
 .navbar {
   background: var(--card);
   color: var(--ink);
@@ -106,6 +111,7 @@ hr {
   margin-right: 6px;
 }
 
+/* ---------------- Section titles (match brand styling) ---------------- */
 .section-title {
   font-family: 'Poppins', sans-serif;
   font-weight: 700;
@@ -117,12 +123,14 @@ hr {
   margin-bottom: 18px;
 }
 
+/* ---------------- Layout ---------------- */
 .container {
   max-width: 960px;
   margin: 0 auto;
   padding: 40px 20px;
 }
 
+/* ---------------- Flash messages ---------------- */
 .flash-messages { margin-bottom: 20px; }
 
 .flash {
@@ -135,6 +143,7 @@ hr {
   margin-bottom: 10px;
 }
 
+/* ---------------- Cards / forms ---------------- */
 .form-card {
   background: var(--card);
   padding: 36px;
@@ -185,6 +194,7 @@ hr {
   background: white;
 }
 
+/* ---------------- Buttons ---------------- */
 button,
 .btn {
   font-family: 'Inter', sans-serif;
@@ -232,6 +242,7 @@ button:active, .btn:active {
   color: var(--muted);
 }
 
+/* ---------------- Home / hero ---------------- */
 .hero {
   text-align: center;
   margin-bottom: 44px;
@@ -277,6 +288,7 @@ button:active, .btn:active {
   color: #FFE7A8;
 }
 
+/* ---------------- Quiz list ---------------- */
 .quiz-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -322,6 +334,7 @@ button:active, .btn:active {
   margin-top: 18px;
 }
 
+/* ---------------- Question builder (create quiz) ---------------- */
 .question-block {
   background: var(--bg);
   border: 1px solid var(--border);
@@ -361,6 +374,7 @@ button:active, .btn:active {
   margin-top: 10px;
 }
 
+/* ---------------- Play quiz — answers ---------------- */
 .answer-options {
   display: flex;
   flex-direction: column;
@@ -410,7 +424,50 @@ button:active, .btn:active {
   color: var(--primary-dark);
 }
 
-.result-card { text-align: center; max-width: 480px; }
+/* ---------------- Result page ---------------- */
+.result-card { text-align: center; max-width: 600px; }
+
+.answer-review {
+  text-align: left;
+  margin: 24px 0;
+}
+
+.answer-review h3 {
+  font-size: 1.1rem;
+  margin-bottom: 14px;
+}
+
+.review-item {
+  border: 1.5px solid var(--border);
+  border-left: 4px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  background: var(--bg);
+}
+
+.review-item.correct { border-left-color: var(--mint); }
+.review-item.incorrect { border-left-color: var(--coral); }
+
+.review-question {
+  font-weight: 600;
+  margin: 0 0 8px;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.review-icon { flex-shrink: 0; }
+
+.review-line {
+  font-size: 0.9rem;
+  margin: 4px 0;
+  color: var(--muted);
+}
+
+.review-line strong { color: var(--ink); }
+
+.review-line.correct-line strong { color: #00996f; }
 
 .scoreboard {
   background: linear-gradient(135deg, var(--primary), var(--coral));
@@ -442,6 +499,7 @@ button:active, .btn:active {
   font-weight: 500;
 }
 
+/* ---------------- Leaderboard ---------------- */
 .podium {
   display: flex;
   align-items: flex-end;

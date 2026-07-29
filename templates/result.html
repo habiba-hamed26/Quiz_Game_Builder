@@ -23,6 +23,36 @@
     {% endif %}
   </p>
 
+  {% if breakdown %}
+  <div class="answer-review">
+    <h3>Your Answers</h3>
+    {% for item in breakdown %}
+      <div class="review-item {{ 'correct' if item.is_correct else 'incorrect' }}">
+        <p class="review-question">
+          {{ loop.index }}. {{ item.question_text }}
+          <span class="review-icon">{{ '✅' if item.is_correct else '❌' }}</span>
+        </p>
+        <p class="review-line">
+          Your answer:
+          <strong>
+            {% if item.selected %}
+              {{ item.selected|upper }}) {{ item['option_' ~ item.selected] }}
+            {% else %}
+              No answer selected
+            {% endif %}
+          </strong>
+        </p>
+        {% if not item.is_correct %}
+        <p class="review-line correct-line">
+          Correct answer:
+          <strong>{{ item.correct|upper }}) {{ item['option_' ~ item.correct] }}</strong>
+        </p>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
   <div class="quiz-card-actions">
     <a href="{{ url_for('play_quiz', quiz_id=quiz_id) }}" class="btn">Play Again</a>
     <a href="{{ url_for('leaderboard', quiz_id=quiz_id) }}" class="btn secondary">View Leaderboard</a>

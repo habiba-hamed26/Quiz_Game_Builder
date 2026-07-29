@@ -135,15 +135,28 @@ def play_quiz(quiz_id):
         WHERE quizzes.id = ?
     ''', (quiz_id,)).fetchone()
     questions = conn.execute('SELECT * FROM questions WHERE quiz_id = ?', (quiz_id,)).fetchall()
-
+ 
     if request.method == 'POST':
-        #calculate quiz score
+        # calculate quiz score and build a per-question breakdown for the result page
         score = 0
+        breakdown = []
         for q in questions:
             selected = request.form.get(f'question_{q["id"]}')
-            if selected == q['correct_option']:
+            is_correct = (selected == q['correct_option'])
+            if is_correct:
                 score += 1
-
+ 
+            breakdown.append({
+                'question_text': q['question_text'],
+                'option_a': q['option_a'],
+                'option_b': q['option_b'],
+                'option_c': q['option_c'],
+                'option_d': q['option_d'],
+                'selected': selected,
+                'correct': q['correct_option'],
+                'is_correct': is_correct
+            })
+ 
         # determine player identity: logged-in user or guest
         if 'user_id' in session:
             user_id = session['user_id']
@@ -151,26 +164,31 @@ def play_quiz(quiz_id):
         else:
             user_id = None
             player_name = request.form.get('guest_name', 'Guest')
-
+ 
         # Insert the score into the scores table
         conn.execute('''INSERT INTO scores (quiz_id, user_id, player_name, score, total_questions)
                          VALUES (?, ?, ?, ?, ?)''',
                       (quiz_id, user_id, player_name, score, len(questions)))
         conn.commit()
         conn.close()
+ 
+        # stash the breakdown in the session so the result page can show it
+        session['last_result'] = breakdown
+ 
         return redirect(url_for('result', quiz_id=quiz_id, score=score, total=len(questions)))
-
+ 
     conn.close()
     return render_template('play_quiz.html', quiz=quiz, questions=questions,
                             logged_in='user_id' in session)
-
-
+ 
+ 
 # Quiz result route that displays the score after completing a quiz
 @app.route('/result/<int:quiz_id>')
 def result(quiz_id):
     score = request.args.get('score')
     total = request.args.get('total')
-    return render_template('result.html', score=score, total=total, quiz_id=quiz_id)
+    breakdown = session.get('last_result', [])
+    return render_template('result.html', score=score, total=total, quiz_id=quiz_id, breakdown=breakdown)
 
 # Quiz Leaderboard route this displays top scores for a specific quiz
 @app.route('/leaderboard/<int:quiz_id>')
